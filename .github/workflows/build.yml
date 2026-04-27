@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: 1. 拉取源码 (🌟 大牛修复：开启 LFS 下载真实库文件)
+    - name: 1. 拉取源码 (包含 LFS 二进制库)
       uses: actions/checkout@v4
       with:
         submodules: 'recursive'
@@ -33,11 +33,12 @@ jobs:
     - name: 4. 获取 Flutter 依赖包
       run: flutter pub get
 
-    - name: 5. 启动标准 Flutter 编译 (去除冗余日志)
-      run: flutter build apk --debug
+    - name: 5. 启动编译 (指定 Flavor 绕过 Flutter 寻址 Bug)
+      run: flutter build apk --flavor api100 --debug
 
-    - name: 6. 上传 APK 产物
+    - name: 6. 🌟 大牛黑客指令：无视报错，暴力提取所有 APK 🌟
       uses: actions/upload-artifact@v4
+      if: always() # 关键指令：即使上一步报错，也强制执行这一步！
       with:
         name: JsxposedX-Hbp-Modified
-        path: build/app/outputs/flutter-apk/app-debug.apk
+        path: build/app/outputs/**/*.apk  # 宽泛匹配，把所有犄角旮旯的 apk 全抽出来

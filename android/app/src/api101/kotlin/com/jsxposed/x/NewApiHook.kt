@@ -1,34 +1,34 @@
 package com.jsxposed.x
 
 import android.annotation.SuppressLint
-import com.jsxposed.x.core.utils.log.LogX
-import com.jsxposed.x.feature.hook.Api101PackageReadyParamWrapper
 import com.jsxposed.x.feature.hook.LPParam
+import com.jsxposed.x.feature.hook.ModuleInterfaceParamWrapper
+import com.jsxposed.x.feature.hook.lpparamProcessName
 import de.robv.android.xposed.IXposedHookZygoteInit
+import io.github.libxposed.api.XposedInterface
 import io.github.libxposed.api.XposedModule
 import io.github.libxposed.api.XposedModuleInterface
 import top.sacz.xphelper.XpHelper
 
-class NewApiHook : XposedModule() {
+class NewApiHook(base: XposedInterface, param: XposedModuleInterface.ModuleLoadedParam) :
+    XposedModule(base, param) {
 
     private val mainHook = MainHook()
 
-    override fun onModuleLoaded(param: XposedModuleInterface.ModuleLoadedParam) {
+    init {
         instance = this
-        processName = param.processName
-
-        runCatching {
-            val startupParam = createStartupParam(getModuleApplicationInfo().sourceDir)
-            XpHelper.initZygote(startupParam)
-        }.onFailure {
-            LogX.e("NewApiHook", "onModuleLoaded init failed: ${it.message}")
+        lpparamProcessName = param.processName
+        try {
+            val suparam = createStartupParam(this.applicationInfo.sourceDir)
+            XpHelper.initZygote(suparam)
+        } catch (_: Exception) {
         }
     }
 
     @SuppressLint("DiscouragedPrivateApi")
-    override fun onPackageReady(param: XposedModuleInterface.PackageReadyParam) {
-        super.onPackageReady(param)
-        forwardToRuntime(Api101PackageReadyParamWrapper(param, processName))
+    override fun onPackageLoaded(param: XposedModuleInterface.PackageLoadedParam) {
+        super.onPackageLoaded(param)
+        forwardToRuntime(ModuleInterfaceParamWrapper(param))
     }
 
     private fun forwardToRuntime(lpparam: LPParam) {
@@ -39,10 +39,16 @@ class NewApiHook : XposedModule() {
         @Volatile
         var instance: NewApiHook? = null
 
-        @Volatile
-        private var processName: String = ""
+        fun usePreferencesSnapshotTransport(): Boolean = true
 
-        fun usePreferencesSnapshotTransport(): Boolean = false
+        // ==========================================
+        // 🌟 大牛注入：驱动直连通道 (JNI 绑定) 🌟
+        // ==========================================
+        @JvmStatic
+        external fun installHbp(reqPayload: ByteArray): Boolean
+
+        @JvmStatic
+        external fun cleanupHbp(): Boolean
     }
 
     private fun createStartupParam(modulePath: String): IXposedHookZygoteInit.StartupParam {

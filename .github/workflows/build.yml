@@ -3,7 +3,7 @@ name: JsxposedX 硬核编译流水线
 on:
   push:
     branches: [ "master", "main" ]
-  workflow_dispatch: # 允许你随时手动点击按钮触发编译
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,7 +14,7 @@ jobs:
     - name: 1. 拉取大牛修改版的源码
       uses: actions/checkout@v4
       with:
-        submodules: 'recursive' # 递归拉取可能存在的依赖模块
+        submodules: 'recursive'
 
     - name: 2. 部署 Java JDK 17 环境
       uses: actions/setup-java@v4
@@ -32,13 +32,16 @@ jobs:
     - name: 4. 获取项目依赖包 (Dart/Flutter)
       run: flutter pub get
 
-    - name: 5. 启动极客混合编译 (Flutter + C++ NDK)
-      # 这里使用 debug 模式编译，方便你注入调试，且免去配置安卓签名的繁琐步骤
-      run: flutter build apk --debug
+    - name: 5. 赋予 Gradle 执行权限
+      run: chmod +x gradlew
+      working-directory: android
 
-    - name: 6. 提取并上传最终产物 (APK)
+    - name: 6. 启动原生 Gradle 编译 (直捣黄龙)
+      run: ./gradlew assembleDebug --info --stacktrace
+      working-directory: android
+
+    - name: 7. 提取并上传最终产物 (APK)
       uses: actions/upload-artifact@v4
       with:
         name: JsxposedX-Hbp-Modified
-        # Flutter 编译后的默认输出路径
-        path: build/app/outputs/flutter-apk/app-debug.apk
+        path: android/app/build/outputs/apk/debug/*.apk

@@ -32,8 +32,8 @@ jobs:
     - name: 4. 获取项目依赖包 (Dart/Flutter)
       run: flutter pub get
 
-    - name: 5. 🌟 大牛黑客指令：全盘斩首阿里云镜像 (防 502 崩溃) 🌟
-      run: find . -name "*.gradle*" -type f -exec sed -i '/aliyun/d' {} +
+    - name: 5. 🌟 大牛黑客指令：替换阿里云为三大国际官方源 🌟
+      run: find . -name "*.gradle*" -type f -exec sed -i 's/.*aliyun.*/google(); mavenCentral(); gradlePluginPortal();/g' {} +
 
     - name: 6. 赋予 Gradle 执行权限
       run: chmod +x gradlew

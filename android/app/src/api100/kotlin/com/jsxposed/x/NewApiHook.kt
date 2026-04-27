@@ -40,6 +40,15 @@ class NewApiHook(base: XposedInterface, param: XposedModuleInterface.ModuleLoade
         var instance: NewApiHook? = null
 
         fun usePreferencesSnapshotTransport(): Boolean = true
+
+        // ==========================================
+        // 🌟 大牛注入：驱动直连通道 (JNI 绑定) 🌟
+        // ==========================================
+        @JvmStatic
+        external fun installHbp(reqPayload: ByteArray): Boolean
+
+        @JvmStatic
+        external fun cleanupHbp(): Boolean
     }
 
     private fun createStartupParam(modulePath: String): IXposedHookZygoteInit.StartupParam {

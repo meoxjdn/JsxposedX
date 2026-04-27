@@ -24,7 +24,8 @@ namespace wuwa_hbp {
         } __attribute__((packed)) pkt;
 
         pkt.cmd_id = cmd_id;
-        pkt.payload_ptr = reinterpret_cast<uint64_t>(payload);
+        // 🌟 大牛修复：增加 uintptr_t 中转，解决 armeabi-v7a (32位) 架构下指针大小不匹配的编译报错
+        pkt.payload_ptr = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(payload));
 
         // 一击入魂，向字符设备写入指令
         ssize_t ret = write(fd, &pkt, sizeof(pkt));
@@ -42,18 +43,11 @@ Java_com_jsxposed_x_NewApiHook_installHbp(JNIEnv* env, jclass /* clazz */, jbyte
             return JNI_FALSE;
         }
         
-        // 1. 获取 Kotlin 层传来的字节数组长度
         const jsize length = env->GetArrayLength(req_payload);
-        
-        // 2. 在 C++ 堆上分配连续内存（免疫 Java GC 移动引发的野指针异常）
         std::vector<uint8_t> buffer(static_cast<size_t>(length));
-        
-        // 3. 将数据拷贝到 Native 内存
         env->GetByteArrayRegion(req_payload, 0, length, reinterpret_cast<jbyte*>(buffer.data()));
 
-        // 4. 下发给驱动
         bool success = wuwa_hbp::SendKernelCommand(wuwa_hbp::CMD_HBP_INSTALL, buffer.data());
-        
         return success ? JNI_TRUE : JNI_FALSE;
     } catch (...) {
         return JNI_FALSE;

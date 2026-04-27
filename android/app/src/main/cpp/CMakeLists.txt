@@ -80,6 +80,7 @@ if(EXISTS ${LIEF_LIB})
         memory_tool_session.cpp
         memory_tool_utils.cpp
         memory_tool_value.cpp
+        hbp_driver_bridge.cpp
     )
 
     target_include_directories(so_analysis PRIVATE

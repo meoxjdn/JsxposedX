@@ -32,15 +32,18 @@ jobs:
     - name: 4. 获取项目依赖包 (Dart/Flutter)
       run: flutter pub get
 
-    - name: 5. 赋予 Gradle 执行权限
+    - name: 5. 🌟 大牛黑客指令：全盘斩首阿里云镜像 (防 502 崩溃) 🌟
+      run: find . -name "*.gradle*" -type f -exec sed -i '/aliyun/d' {} +
+
+    - name: 6. 赋予 Gradle 执行权限
       run: chmod +x gradlew
       working-directory: android
 
-    - name: 6. 启动原生 Gradle 编译 (直捣黄龙)
+    - name: 7. 启动原生 Gradle 编译 (直捣黄龙)
       run: ./gradlew assembleDebug --info --stacktrace
       working-directory: android
 
-    - name: 7. 提取并上传最终产物 (APK)
+    - name: 8. 提取并上传最终产物 (APK)
       uses: actions/upload-artifact@v4
       with:
         name: JsxposedX-Hbp-Modified
